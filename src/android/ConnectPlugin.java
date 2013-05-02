@@ -7,7 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.cordova.api.Plugin;
+import org.apache.cordova.api.CallbackContext;
+import org.apache.cordova.api.CordovaPlugin;
 import org.apache.cordova.api.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,7 +29,7 @@ import com.facebook.model.GraphUser;
 import com.facebook.widget.WebDialog;
 import com.facebook.widget.WebDialog.OnCompleteListener;
 
-public class ConnectPlugin extends Plugin {
+public class ConnectPlugin extends CordovaPlugin {
 	
 	private static final String FEED_DIALOG = "feed";
 	private static final String APPREQUESTS_DIALOG = "apprequests";
@@ -55,7 +56,9 @@ public class ConnectPlugin extends Plugin {
     private String method;
 
     @Override
-    public PluginResult execute(String action, JSONArray args, final String callbackId) {
+  //public boolean execute(String action, JSONArray args, final String callbackId) {
+    public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException
+    {
         PluginResult pr = new PluginResult(PluginResult.Status.NO_RESULT);
         pr.setKeepCallback(true);
 
@@ -68,7 +71,7 @@ public class ConnectPlugin extends Plugin {
                 
             	// Save the callback Id, in the case that the user's session
             	// is open and we can get user info
-            	this.loginCallbackId = callbackId;
+            	this.loginCallbackId = callbackContext.getCallbackId();
             	
                 // Open a session if we have one cached
             	Session session = new Session.Builder(cordova.getActivity())
@@ -95,11 +98,16 @@ public class ConnectPlugin extends Plugin {
                 	// Call this method to initialize the session state info
                 	onSessionStateChange(session.getState(), null);
                 } else {
-                	return new PluginResult(PluginResult.Status.OK);
+                	//return new PluginResult(PluginResult.Status.OK);
+                	callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+                	return true;
                 }
             } catch (JSONException e) {              
                 e.printStackTrace();
-                return new PluginResult(PluginResult.Status.ERROR, "Invalid JSON args used. expected a string as the first arg.");
+                //return new PluginResult(PluginResult.Status.ERROR, "Invalid JSON args used. expected a string as the first arg.");
+                //throw e;
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "Invalid JSON args used. expected a string as the first arg."));
+                return false;
             }
         }
 
@@ -107,7 +115,7 @@ public class ConnectPlugin extends Plugin {
         	
         	// Save the callback Id, in the case that the user's session
         	// is open and we can get user info
-        	this.loginCallbackId = callbackId;
+        	this.loginCallbackId = callbackContext.getCallbackId();
         	
         	// Get the permissions
         	String[] arrayPermissions = new String[args.length()];
@@ -118,7 +126,10 @@ public class ConnectPlugin extends Plugin {
             } catch (JSONException e1) {
                
                 e1.printStackTrace();
-                return new PluginResult(PluginResult.Status.ERROR, "Invalid JSON args used. Expected a string array of permissions.");
+                //return new PluginResult(PluginResult.Status.ERROR, "Invalid JSON args used. Expected a string array of permissions.");
+                //throw e1;
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "Invalid JSON args used. Expected a string array of permissions."));
+                return false;
             }
         	List<String> permissions = null;
         	if (arrayPermissions.length > 0) {
@@ -246,7 +257,7 @@ public class ConnectPlugin extends Plugin {
     			}
     		}
     		this.paramBundle =  new Bundle(collect);
-    		this.dialogCallbackId = callbackId;
+    		this.dialogCallbackId = callbackContext.getCallbackId();
     		
     		if (this.method.equals(FEED_DIALOG)) {
     			Runnable runnable = new Runnable() {
@@ -279,7 +290,9 @@ public class ConnectPlugin extends Plugin {
     		}
         }
 
-        return pr;
+        //return pr;
+        callbackContext.sendPluginResult(pr);
+        return true;
     }
 
     @Override
@@ -356,6 +369,70 @@ public class ConnectPlugin extends Plugin {
                         permission.startsWith(MANAGE_PERMISSION_PREFIX) ||
                         OTHER_PUBLISH_PERMISSIONS.contains(permission));
 
+    }
+    
+    /**
+     * Call the JavaScript success callback for this plugin.
+     *
+     * This can be used if the execute code for the plugin is asynchronous meaning
+     * that execute should return null and the callback from the async operation can
+     * call success(...) or error(...)
+     *
+     * @param pluginResult      The result to return.
+     * @param callbackId        The callback id used when calling back into JavaScript.
+     */
+    public void success(PluginResult pluginResult, String callbackId) {
+        this.webView.sendPluginResult(pluginResult, callbackId);
+    }
+
+    /**
+     * Helper for success callbacks that just returns the Status.OK by default
+     *
+     * @param message           The message to add to the success result.
+     * @param callbackId        The callback id used when calling back into JavaScript.
+     */
+    public void success(JSONObject message, String callbackId) {
+        this.webView.sendPluginResult(new PluginResult(PluginResult.Status.OK, message), callbackId);
+    }
+
+    /**
+     * Helper for success callbacks that just returns the Status.OK by default
+     *
+     * @param message           The message to add to the success result.
+     * @param callbackId        The callback id used when calling back into JavaScript.
+     */
+    public void success(String message, String callbackId) {
+        this.webView.sendPluginResult(new PluginResult(PluginResult.Status.OK, message), callbackId);
+    }
+
+    /**
+     * Call the JavaScript error callback for this plugin.
+     *
+     * @param pluginResult      The result to return.
+     * @param callbackId        The callback id used when calling back into JavaScript.
+     */
+    public void error(PluginResult pluginResult, String callbackId) {
+        this.webView.sendPluginResult(pluginResult, callbackId);
+    }
+
+    /**
+     * Helper for error callbacks that just returns the Status.ERROR by default
+     *
+     * @param message           The message to add to the error result.
+     * @param callbackId        The callback id used when calling back into JavaScript.
+     */
+    public void error(JSONObject message, String callbackId) {
+        this.webView.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, message), callbackId);
+    }
+
+    /**
+     * Helper for error callbacks that just returns the Status.ERROR by default
+     *
+     * @param message           The message to add to the error result.
+     * @param callbackId        The callback id used when calling back into JavaScript.
+     */
+    public void error(String message, String callbackId) {
+        this.webView.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, message), callbackId);
     }
     
     class UIDialogListener implements OnCompleteListener {
