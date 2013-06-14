@@ -123,9 +123,11 @@ Create a basic Cordova iOS application by following the [PhoneGap Getting Starte
 ```
 
 4. From the **Cordova Facebook Plugin** folder copy the contents of the **www** folder into the **www** directory in Xcode.
+
 #### If you get error of FBSBJSON.h not found - try to do following
-Copy the contents of the "src/ios/facebook/JSON" plugin folder into the "Plugins/ios" group in my project. This group was created during the manual installation and. The files "FacebookConnectPlugin.h" and "FacebookConnectPlugin.m" were also copied to it the folder during the manual installation.
-Added the Security.framework to my project by going to the Project Navigator, selecting my project root, then my target, then "Build Phases", then "Link Binary With Libraries" and finally adding the framework by clicking the (+) icon. Here I also added "libsqlite3.0.dylib" since it is mentioned in the Facebook SDK upgrade instructions. I was able to build the project without adding "libsqlite3.0.dylib", though.
+
+1. Copy the contents of the "src/ios/facebook/JSON" plugin folder into the "Plugins/ios" group in my project. This group was created during the manual installation and. The files "FacebookConnectPlugin.h" and "FacebookConnectPlugin.m" were also copied to it the folder during the manual installation.
+2. Added the Security.framework to my project by going to the Project Navigator, selecting my project root, then my target, then "Build Phases", then "Link Binary With Libraries" and finally adding the framework by clicking the (+) icon. Here I also added "libsqlite3.0.dylib" since it is mentioned in the Facebook SDK upgrade instructions. I was able to build the project without adding "libsqlite3.0.dylib", though.
 
 ### Run the included samples
 
